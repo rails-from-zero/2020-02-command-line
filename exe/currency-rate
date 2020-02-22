@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "currency/rate"
+require "optparse"
+require "optparse/date"
+
+options = {}
+
+gem_spec = Gem::Specification::load("currency-rate.gemspec")
+
+parser = OptionParser.new do |opt|
+  opt.banner = "Usage #{gem_spec.name} [options]"
+  opt.define_head gem_spec.summary
+
+  opt.separator ""
+
+  opt.on("-b", "--base [VALUE]", String) do |currency|
+    options[:base] = currency
+  end
+
+  opt.on("-s", "--symbol [VALUE]", String) do |currency|
+    options[:symbol] = currency
+  end
+
+  opt.on("-d", "--date [DATE]", Date) do |date|
+    options[:date] = date
+  end
+
+  opt.separator ""
+
+  opt.on("-h", "--help", "Show this message") do |date|
+    puts opt
+    exit
+  end
+end
+
+begin
+  parser.parse!
+  puts "The conversion rate is %s" % Currency::Rate.get(options)
+rescue OptionParser::InvalidArgument => e
+  STDERR.puts %Q[#{e.message.capitalize}. Run "#{File.basename($0)}" --help for details.]
+  exit 1
+rescue KeyError
+  STDERR.puts %Q[Insufficient arguments. Run "#{File.basename($0)}" --help for details.]
+  exit 2
+end
